@@ -4,9 +4,17 @@ import { GoogleGenAI } from '@google/genai';
 import ReactMarkdown from 'react-markdown';
 
 // Initialize Gemini API
-console.log("API Key type:", typeof process.env.GEMINI_API_KEY);
-console.log("API Key length:", process.env.GEMINI_API_KEY ? process.env.GEMINI_API_KEY.length : 0);
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+const getAIClient = () => {
+  const apiKey = process.env.GEMINI_API_KEY || process.env.API_KEY || '';
+  if (!apiKey) return null;
+  try {
+    return new GoogleGenAI({ apiKey });
+  } catch (e) {
+    return null;
+  }
+};
+
+const ai = getAIClient();
 
 export const ProblemSolving: React.FC = () => {
   const [messages, setMessages] = useState<{role: 'user' | 'model', text: string}[]>([
@@ -33,6 +41,10 @@ export const ProblemSolving: React.FC = () => {
     setIsLoading(true);
 
     try {
+      if (!ai) {
+        throw new Error("L'Intelligenza Artificiale non è configurata correttamente. Aggiungi la API Key di Gemini nelle impostazioni del tuo hosting (Vercel) usando la variabile VITE_GEMINI_API_KEY.");
+      }
+
       // Format history for Gemini
       const history = messages.slice(1).map(msg => ({
         role: msg.role,

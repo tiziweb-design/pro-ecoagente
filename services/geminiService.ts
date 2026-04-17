@@ -6,8 +6,16 @@
 import { GoogleGenAI } from "@google/genai";
 
 // Initialize the client
-// CRITICAL: We use process.env.API_KEY as per strict guidelines.
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+const getAIClient = () => {
+  const apiKey = process.env.API_KEY || process.env.GEMINI_API_KEY || '';
+  if (!apiKey) return null;
+  try {
+    return new GoogleGenAI({ apiKey });
+  } catch(e) {
+    return null;
+  }
+};
+const ai = getAIClient();
 
 /**
  * Generates an SVG string based on the user's prompt.
@@ -15,6 +23,7 @@ const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
  */
 export const generateSvgFromPrompt = async (prompt: string): Promise<string> => {
   try {
+    if (!ai) throw new Error("API Key non valid.");
     const systemPrompt = `
       You are a world-class expert in Scalable Vector Graphics (SVG) design and coding. 
       Your task is to generate a high-quality, visually stunning, and detailed SVG based on the user's description of an object or item.
